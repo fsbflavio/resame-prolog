@@ -71,29 +71,27 @@ completa_same([H|T], SameIncompleto, NovoSame) :-
 	Same = [H|T],
 	length(Same, X),
 	length(H, Y),
-	completa_col(SameIncompleto, Y, R),
-	completa_lin(R, X, NovoSame).
+	completa_col(SameIncompleto, Y, Completado),
+	completa_lin(Completado, X, NovoSame).
 	
 completa_lin([H|T], X, NovoSame) :-	
 	Same = [H|T],
 	length(Same, L),
 	X1 is X - L,
-	length(H, TCol),
-	completa_lin(Same, X1, TCol, [], NovoSame).
+	length(H, TamCol),
+	completa_lin(Same, X1, TamCol, [], NovoSame).
 
 completa_lin(_, 0, _, NovoSame, NovoSame) :- 
 	not(empty(NovoSame)), !.
 
 completa_lin(NovoSame, 0, _, _, NovoSame) :- !.
 
-completa_lin(Same, X, TCol, _, Retorno) :-
-	coluna_nula(TCol, NovaLinha),
+completa_lin(Same, X, TamCol, _, Retorno) :-
+	coluna_nula(TamCol, NovaLinha),
 	ListaNula = [NovaLinha|[]],
 	append(Same, ListaNula, Novo),
 	X1 is X - 1,
-	completa_lin(Novo, X1, TCol, Novo, Retorno).
-
-
+	completa_lin(Novo, X1, TamCol, Novo, Retorno).
 
 completa_col(L, X, Retorno) :- 
 	length(L, S),
@@ -147,20 +145,20 @@ solve(Same, [M|Moves]) :-
 group(Same, Group) :- 
 	findall(P, posicoes(Same,P), Pontos),
 	%posicoes(Same,Pontos),
-	group2(Same,Pontos,[],K),
+	group(Same,Pontos,[],K),
 	member(Group,K).
 
-group2(_, [], Group, Group).
+group(_, [], Group, Group).
 
-group2(Same, [H|T],Group, Gamb) :-
+group(Same, [H|T],Group, Retorno) :-
 	group(Same,H,GrupoP),
 	sort(GrupoP,GrupoO),
 	not(member(GrupoO, Group)),
-	group2(Same, T, [GrupoO|Group],Gamb), !.
+	group(Same, T, [GrupoO|Group],Retorno), !.
     	%writeln([Same, Group]), fail.
 
-group2(Same, [_|T], Group, Gamb) :-
-	group2(Same,T,Group,Gamb).
+group(Same, [_|T], Group, Retorno) :-
+	group(Same,T,Group,Retorno).
 	
 
 %% grupo(+Same, +P, -Group) is semidet
@@ -194,7 +192,6 @@ compara-vizinhos(Same, Vizitados, [_|T], Mesmacor) :-
 remove_group(Same, Group, NewSame) :-
 	zera(Same, Group, SameZerado),
 	remove_zeros(SameZerado,[], NewSame), !.
-	%writeln([Same, Group, NewSame]), fail.
 
 remove_zeros([], NovoSame, Novo) :-
 	delete(NovoSame, [], Novo1), 
