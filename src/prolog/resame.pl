@@ -39,7 +39,33 @@ main(File) :-
 	read_matrix_file(File, M),
 	transpose(M, M1),
 	solve(M1,R), !,
-	write(R), nl.
+	write_jogadas(M1, R, M1), !.
+
+write_jogadas(_,[], _) :- !.
+
+write_jogadas(Same, [H|T], Original) :- 
+	write_pos(H), nl, nl,
+	group(Same, H, Group),
+	remove_group(Same, Group, Removido),
+	completa_same(Original, Removido, Zerado),
+	not(empty(T)),
+	transpose(Zerado, Trans),
+	write_matrix(Trans), nl,
+	write_jogadas(Removido, T, Original).
+
+write_jogadas(Same, [H|_], Original) :-
+	group(Same, H, Group),
+	remove_group(Same, Group, Removido),
+	completa_same(Original, Removido, Zerado),
+	transpose(Zerado,Trans),	
+	write_matrix(Trans), !.
+
+write_pos(pos(X,Y)) :-
+	write(X),
+	write(' '),
+	write(Y).
+	
+
 
 completa_same([H|T], SameIncompleto, NovoSame) :-
 	Same = [H|T],
@@ -48,7 +74,6 @@ completa_same([H|T], SameIncompleto, NovoSame) :-
 	completa_col(SameIncompleto, Y, R),
 	completa_lin(R, X, NovoSame).
 	
-
 completa_lin([H|T], X, NovoSame) :-	
 	Same = [H|T],
 	length(Same, L),
@@ -56,9 +81,12 @@ completa_lin([H|T], X, NovoSame) :-
 	length(H, TCol),
 	completa_lin(Same, X1, TCol, [], NovoSame).
 
-completa_lin(_, 0, _, NovoSame, NovoSame) :- !.
+completa_lin(_, 0, _, NovoSame, NovoSame) :- 
+	not(empty(NovoSame)), !.
 
-completa_lin(Same, X, TCol, NovoSame, Retorno) :-
+completa_lin(NovoSame, 0, _, _, NovoSame) :- !.
+
+completa_lin(Same, X, TCol, _, Retorno) :-
 	coluna_nula(TCol, NovaLinha),
 	ListaNula = [NovaLinha|[]],
 	append(Same, ListaNula, Novo),
@@ -68,7 +96,12 @@ completa_lin(Same, X, TCol, NovoSame, Retorno) :-
 
 
 completa_col(L, X, Retorno) :- 
-	completa_col(L, X, [], Retorno).
+	length(L, S),
+	S =\= 0,
+	completa_col(L, X, [], Retorno), !.
+
+completa_col(L, X, Retorno) :-
+	completa_col([[]|L], X, [], Retorno).
 
 completa_col([H|T], X, NovoSame, Retorno) :-
 	length(H, Tam),
@@ -162,7 +195,6 @@ remove_group(Same, Group, NewSame) :-
 	zera(Same, Group, SameZerado),
 	remove_zeros(SameZerado,[], NewSame), !.
 	%writeln([Same, Group, NewSame]), fail.
-
 
 remove_zeros([], NovoSame, Novo) :-
 	delete(NovoSame, [], Novo1), 
