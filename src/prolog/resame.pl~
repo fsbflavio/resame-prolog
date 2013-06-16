@@ -36,7 +36,10 @@
 %  ou sem-solucao se o jogo não tem solução.
 
 main(File) :-
-    writeln(File), fail.
+	read_matrix_file(File, M),
+	transpose(M, M1),
+	solve(M1,[]),
+	write(R).
 
 %% solve(+Same, -Moves) is nondet
 %
@@ -65,18 +68,7 @@ group(Same, Group) :-
 	group2(Same,Pontos,[],K),
 	member(Group,K).
 
-split(L) :- 
-	split(L, S).
-
-split([], H).
-
-split([H|_], H).
-
-split([H|T], H) :- 
-	split(T, _), !.
-	
-group2(Same, [], Group, Group).
-
+group2(_, [], Group, Group).
 
 group2(Same, [H|T],Group, Gamb) :-
 	group(Same,H,GrupoP),
@@ -85,7 +77,7 @@ group2(Same, [H|T],Group, Gamb) :-
 	group2(Same, T, [GrupoO|Group],Gamb), !.
     	%writeln([Same, Group]), fail.
 
-group2(Same, [H|T], Group, Gamb) :-
+group2(Same, [_|T], Group, Gamb) :-
 	group2(Same,T,Group,Gamb).
 	
 
@@ -97,7 +89,7 @@ group(Same, P, Group) :-
 	compara-vizinhos(Same, [], [P], Group).
 
 
-compara-vizinhos(Same,R,[],R) :- 
+compara-vizinhos(_,R,[],R) :- 
 	length(R,T),
 	T > 1, !.
 	
@@ -118,14 +110,42 @@ compara-vizinhos(Same, Vizitados, [_|T], Mesmacor) :-
 %    - crie um predicado auxiliar remove_column_group, que remove os elementos
 %    de uma coluna específica
 remove_group(Same, Group, NewSame) :-
+	zera(Same, Group, SameZerado),
+	remove_zeros(SameZerado,[], NewSame), !.
+	%writeln([Same, Group, NewSame]), fail.
 
 
-    writeln([Same, Group, NewSame]), fail.
+remove_zeros([], NovoSame, Novo) :-
+	delete(NovoSame, [], Novo1), 
+	reverse(Novo1, Novo).
 
+remove_zeros([H|T], NovoSame, Retorno) :-
+	delete(H, 0, L),
+	remove_zeros(T, [L|NovoSame], Retorno).
+
+	
+
+zera(Same, [], Same).
+
+zera(Same, [H|T], K) :-
+	zera_pos(Same, H, [], NovoSame),
+	zera(NovoSame, T, K).
+	
+zera_pos([], _, NovoSame, Novo) :-
+	reverse(NovoSame, Novo).
+
+zera_pos([H|T], pos(X,0), NovoSame, Retorno) :-
+	setsub(H,0,X,[], H2),
+	zera_pos(T, pos(X,-1), [H2|NovoSame], Retorno), !.
+
+zera_pos([H|T], pos(X,Y), NovoSame, Retorno) :-
+	Y1 is Y - 1,
+	zera_pos(T, pos(X,Y1), [H|NovoSame], Retorno).
+		
 
 setsub([], _, _, Novalista, Retorno) :- reverse(Novalista, Retorno).
 
-setsub([H|T], Valor, 0, Novalista, Retorno) :-
+setsub([_|T], Valor, 0, Novalista, Retorno) :-
 	setsub(T, Valor, -1, [Valor|Novalista], Retorno).
 
 setsub([H|T], Valor, Pos, Novalista, Retorno) :-
@@ -176,23 +196,3 @@ listref(Same, pos(X,Y), Elemento) :-
 %Verdadeiro se P e o conjunto de todas as posicoes do same
 posicoes(Same, P) :-
 	listref(Same, P, _).
-
-% TESTES
-
-teste(Vizinhos) :- 
-	lista_de_colunas('3-3-3', Teste),
-	%write(Teste).
-	%vizinhos(Teste, pos(1,2), Vizinhos).
-	%findall(A,posicoes(Teste, P)),
-	mesma_cor([pos(0,0), pos(1,0),pos(2,0), pos(0,1), pos(1,1), pos(2,1),pos(0,2),pos(1,2),pos(2,2)], G).
-
-%mesma_cor([T|R], Group) :-
-%	findall(Elemento,vizinhos([[1,1,1],[1,1,1],[1,1,1]],T,Elemento), Return),
-%	append(Return,Group, Nova),
-%	write(Nova),
-%	mesma_cor(R,Nova).
-
-lista_de_colunas(Matriz, X) :-
-	read_matrix_file(Matriz, M),
-	transpose(M,X).
-	
