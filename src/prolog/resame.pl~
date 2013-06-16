@@ -61,9 +61,23 @@ solve(Same, [M|Moves]) :-
 
 group(Same, Group) :- 
 	findall(P, posicoes(Same,P), Pontos),
-	group2(Same,Pontos,[],Group).
+	%posicoes(Same,Pontos),
+	group2(Same,Pontos,[],K),
+	member(Group,K).
 
+split(L) :- 
+	split(L, S).
+
+split([], H).
+
+split([H|_], H).
+
+split([H|T], H) :- 
+	write(2),
+	split(T, _), !.
+	
 group2(Same, [], Group, Group).
+
 
 group2(Same, [H|T],Group, Gamb) :-
 	group(Same,H,GrupoP),
