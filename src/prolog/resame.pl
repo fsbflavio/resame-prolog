@@ -38,8 +38,57 @@
 main(File) :-
 	read_matrix_file(File, M),
 	transpose(M, M1),
-	solve(M1,[]),
-	write(R).
+	solve(M1,R), !,
+	write(R), nl.
+
+completa_same([H|T], SameIncompleto, NovoSame) :-
+	Same = [H|T],
+	length(Same, X),
+	length(H, Y),
+	completa_col(SameIncompleto, Y, R),
+	completa_lin(R, X, NovoSame).
+	
+
+completa_lin([H|T], X, NovoSame) :-	
+	Same = [H|T],
+	length(Same, L),
+	X1 is X - L,
+	length(H, TCol),
+	completa_lin(Same, X1, TCol, [], NovoSame).
+
+completa_lin(_, 0, _, NovoSame, NovoSame) :- !.
+
+completa_lin(Same, X, TCol, NovoSame, Retorno) :-
+	coluna_nula(TCol, NovaLinha),
+	ListaNula = [NovaLinha|[]],
+	append(Same, ListaNula, Novo),
+	X1 is X - 1,
+	completa_lin(Novo, X1, TCol, Novo, Retorno).
+
+
+
+completa_col(L, X, Retorno) :- 
+	completa_col(L, X, [], Retorno).
+
+completa_col([H|T], X, NovoSame, Retorno) :-
+	length(H, Tam),
+	X1 is X - Tam,
+	coluna_nula(X1,L),
+	append(H, L, R),
+	completa_col(T, X, [R|NovoSame], Retorno).
+
+completa_col([], _, R, Retorno) :- reverse(R,Retorno).
+
+	
+	
+coluna_nula(N, L) :- 
+	coluna_nula(N, [], L).
+	
+coluna_nula(0, A, A):- !.
+
+coluna_nula(N, NovaColuna, Retorno) :-
+	N1 is N - 1,
+	coluna_nula(N1, [0|NovaColuna], Retorno).	
 
 %% solve(+Same, -Moves) is nondet
 %
