@@ -73,7 +73,6 @@ split([], H).
 split([H|_], H).
 
 split([H|T], H) :- 
-	write(2),
 	split(T, _), !.
 	
 group2(Same, [], Group, Group).
@@ -119,7 +118,21 @@ compara-vizinhos(Same, Vizitados, [_|T], Mesmacor) :-
 %    - crie um predicado auxiliar remove_column_group, que remove os elementos
 %    de uma coluna específica
 remove_group(Same, Group, NewSame) :-
+
+
     writeln([Same, Group, NewSame]), fail.
+
+
+setsub([], _, _, Novalista, Retorno) :- reverse(Novalista, Retorno).
+
+setsub([H|T], Valor, 0, Novalista, Retorno) :-
+	setsub(T, Valor, -1, [Valor|Novalista], Retorno).
+
+setsub([H|T], Valor, Pos, Novalista, Retorno) :-
+	Pos =\= 0,
+	Pos2 is Pos - 1,
+	setsub(T, Valor, Pos2, [H|Novalista], Retorno).
+
 
 %verdadeiro se vizinho é um vizinho da mesma cor
 vizinhos(Same, pos(X,Y),Vizinho) :-
